@@ -85,7 +85,7 @@ int main(int N, char *Argv[]) {
   Parser.SetLargeGroupSize(-1);
   if (!Parser.parseFile())
     exitWithError("Parsing failed.");
-  // Parser.dumpGroups();
+  Parser.dumpGroups();
   if (!Parser.writeToFile(OutputName))
     exitWithError("Writing failed.");
 }

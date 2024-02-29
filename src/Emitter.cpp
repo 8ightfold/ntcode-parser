@@ -26,6 +26,7 @@ using StatusGroupRef = GroupEmitter::StatusGroupRef;
 using EmitterMsgType = GroupEmitter::EmitterMsgType;
 
 static StringRef GetGroupName(StatusGroup Group);
+static std::string MakePascalcase(StringRef Name);
 static llvm::FormattedNumber FormatMergedCode(const NtStatus& Status);
 static uint32_t MergeStatusAndCode(const NtStatus& Status);
 
@@ -120,8 +121,8 @@ void GroupEmitter::emitTable(
 }
 
 void GroupEmitter::emitTableValue(const NtStatus& Status, bool NoComma) {
-  OS.indent(4) << "$NewPErr(\"" << Status.Name << "\", "
-    << "\"" << formatMessage(Status) << "\")"
+  OS.indent(4) << "$NewPErr(\"" << MakePascalcase(Status.Name) << '\"'
+    << ", \"" << formatMessage(Status) << "\")"
     << (NoComma ? "" : ",") << '\n';
 }
 
@@ -184,6 +185,27 @@ StringRef GetGroupName(StatusGroup Group) {
    default:
     return "Unknown";
   }
+}
+
+std::string MakePascalcase(StringRef Name) {
+  std::string Output;
+  size_t Pos = 0;
+  Output.reserve(Name.size());
+
+  while ((Pos = Name.find('_')) != StringRef::npos) {
+    StringRef Substr = Name.take_front(Pos);
+    Output.push_back(Substr[0]);
+    for (char C : Substr.drop_front())
+      Output.push_back(std::tolower(C));
+    Name = Name.drop_front(Pos + 1);
+  }
+
+  if (!Name.empty()) {
+    Output.push_back(Name[0]);
+    for (char C : Name.drop_front())
+      Output.push_back(std::tolower(C));
+  }
+  return Output;
 }
 
 llvm::FormattedNumber FormatMergedCode(const NtStatus& Status) {
